@@ -5,6 +5,7 @@ import {
   IGroupChatFlowSpec,
   ILLMConfig,
   IModelConfig,
+  ISkill,
   IStatus,
 } from "./types";
 
@@ -197,6 +198,25 @@ export const guid = () => {
 };
 
 /**
+ * Takes a string and returns the first n characters followed by asterisks.
+ * @param {string} str - The string to obscure
+ * @param {number} n - Number of characters to show before obscuring
+ * @returns {string} The obscured string with first n characters in clear text
+ */
+export const obscureString = (str: string, n: number = 3) => {
+  if (n < 0 || n > str.length) {
+    console.log("n cannot be less than 0 or greater than the string length.");
+    return str;
+  }
+  // First n characters in clear text
+  var clearText = str.substring(0, n);
+  // Remaining characters replaced with asterisks
+  var obscured = clearText + "*".repeat(str.length - n);
+
+  return obscured;
+};
+
+/**
  * Converts a number of seconds into a human-readable string representing the duration in days, hours, minutes, and seconds.
  * @param {number} seconds - The number of seconds to convert.
  * @returns {string} A well-formatted duration string.
@@ -259,7 +279,7 @@ export const sampleWorkflowConfig = (type = "twoagents") => {
     human_input_mode: "NEVER",
     max_consecutive_auto_reply: 8,
     system_message:
-      "You are a helpful assistant that can use available functions when needed to solve problems. At each point, do your best to determine if the user's request has been addressed. IF THE REQUEST HAS NOT BEEN ADDRESSED, RESPOND WITH CODE TO ADDRESS IT. IF A FAILURE OCCURRED (e.g., due to a missing library) AND SOME ADDITIONAL CODE WAS WRITTEN (e.g. code to install the library), ENSURE THAT THE ORIGINAL CODE TO ADDRESS THE TASK STILL GETS EXECUTED. If the request HAS been addressed, respond with a summary of the result. The summary must be written as a coherent helpful response to the user request e.g. 'Sure, here is result to your request ' or 'The tallest mountain in Africa is ..' etc.  The summary MUST end with the word TERMINATE. If the user request is  pleasantry or greeting, you should respond with a pleasantry or greeting and TERMINATE.",
+      "You are a helpful assistant that can use available functions when needed to solve problems. At each point, do your best to determine if the user's request has been addressed. IF THE REQUEST HAS NOT BEEN ADDRESSED, RESPOND WITH CODE TO ADDRESS IT. IF A FAILURE OCCURRED (e.g., due to a missing library) AND SOME ADDITIONAL CODE WAS WRITTEN (e.g. code to install the library), ENSURE THAT THE ORIGINAL CODE TO ADDRESS THE TASK STILL GETS EXECUTED. If the request HAS been addressed, respond with a summary of the result. The summary must be written as a coherent helpful response to the user request e.g. 'Sure, here is result to your request ' or 'The tallest mountain in Africa is ..' etc. If the user request is  pleasantry or greeting, you should respond with a pleasantry or greeting and TERMINATE.",
   };
 
   const assistantFlowSpec: IAgentFlowSpec = {
@@ -327,8 +347,13 @@ export const getModels = () => {
 };
 
 export const getSampleSkill = () => {
-  const catSkill = `
-  # this is a sample skill. Replace with your own skill function
+  const content = `
+  ## This is a sample skill. Replace with your own skill function
+  ## In general, a good skill must have 3 sections:
+  ## 1. Imports (import libraries needed for your skill)
+  ## 2. Function definition  AND docstrings (this helps the LLM understand what the function does and how to use it)
+  ## 3. Function body (the actual code that implements the function)
+
   import numpy as np
   import matplotlib.pyplot as plt
   from matplotlib import font_manager as fm
@@ -367,7 +392,14 @@ export const getSampleSkill = () => {
       # Save figure to file
       plt.savefig(filename, dpi=120, bbox_inches='tight', pad_inches=0.1)
       plt.close(fig)`;
-  return catSkill;
+
+  const skill: ISkill = {
+    title: "save_cat_ascii_art_to_png",
+    description: "save cat ascii art to png",
+    content: content,
+  };
+
+  return skill;
 };
 
 export const timeAgo = (dateString: string): string => {
@@ -446,4 +478,30 @@ export const fetchVersion = () => {
       console.error("Error:", error);
       return null;
     });
+};
+
+/**
+ * Recursively sanitizes JSON objects by replacing specific keys with a given value.
+ * @param {JsonValue} data - The JSON data to be sanitized.
+ * @param {string[]} keys - An array of keys to be replaced in the JSON object.
+ * @param {string} replacement - The value to use as replacement for the specified keys.
+ * @returns {JsonValue} - The sanitized JSON data.
+ */
+export const sanitizeConfig = (
+  data: any,
+  keys: string[] = ["api_key"],
+  replacement: string = "********"
+): any => {
+  if (Array.isArray(data)) {
+    return data.map((item) => sanitizeConfig(item, keys, replacement));
+  } else if (typeof data === "object" && data !== null) {
+    Object.keys(data).forEach((key) => {
+      if (keys.includes(key)) {
+        data[key] = replacement;
+      } else {
+        data[key] = sanitizeConfig(data[key], keys, replacement);
+      }
+    });
+  }
+  return data;
 };

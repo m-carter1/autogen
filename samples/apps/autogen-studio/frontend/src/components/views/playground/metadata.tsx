@@ -94,7 +94,9 @@ const MetaDataView = ({ metadata }: { metadata: any | null }) => {
     } else if (is_csv) {
       fileView = (
         <div className="h">
-          <a href={`${serverUrl}/${file_path}`}><div className="mb-4">{fileTitle}</div></a>
+          <a href={`${serverUrl}/${file_path}`}>
+            <div className="mb-4">{fileTitle}</div>
+          </a>
           <CsvLoader
             csvUrl={`${serverUrl}/${file_path}`}
             className="w-full rounded"
@@ -117,7 +119,13 @@ const MetaDataView = ({ metadata }: { metadata: any | null }) => {
     } else if (is_code) {
       fileView = (
         <div className="h">
-          <a href={`${serverUrl}/${file_path}`} target="_blank"><div className="mb-4">{fileTitle}</div></a>
+          <a
+            href={`${serverUrl}/${file_path}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div className="mb-4">{fileTitle}</div>
+          </a>
           <CodeLoader
             url={`${serverUrl}/${file_path}`}
             className="w-full rounded"
@@ -140,7 +148,15 @@ const MetaDataView = ({ metadata }: { metadata: any | null }) => {
     } else if (is_pdf) {
       fileView = (
         <div className="h-full">
-          <div className="mb-4"><a href={`${serverUrl}/${file_path}`} target="_blank">{fileTitle}</a></div>
+          <div className="mb-4">
+            <a
+              href={`${serverUrl}/${file_path}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {fileTitle}
+            </a>
+          </div>
           <PdfViewer url={`${serverUrl}/${file_path}`} />
         </div>
       );
@@ -181,7 +197,7 @@ const MetaDataView = ({ metadata }: { metadata: any | null }) => {
 
   const messages = (metadata.messages || []).map((message: any, i: number) => {
     return (
-      <div className="borpder-b mb-2 border-dashed" key={"messagerow" + i}>
+      <div className=" mb-2 border-dashed" key={"messagerow" + i}>
         <GroupView
           title={
             <div className="rounded p-1 px-2 inline-block text-xs bg-secondary">
@@ -203,7 +219,7 @@ const MetaDataView = ({ metadata }: { metadata: any | null }) => {
   return (
     <div>
       {hasMessages && (
-        <div className="rounded bg-primary p-2">
+        <div className="rounded   bg-primary  ">
           <CollapseBox
             open={false}
             title={`Agent Messages (${messages.length} message${

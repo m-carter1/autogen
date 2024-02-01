@@ -1,4 +1,5 @@
 # AutoGen Studio
+
 [![PyPI version](https://badge.fury.io/py/autogenstudio.svg)](https://badge.fury.io/py/autogenstudio)
 [![Downloads](https://static.pepy.tech/badge/autogenstudio/week)](https://pepy.tech/project/autogenstudio)
 
@@ -9,6 +10,9 @@ AutoGen Studio is an AutoGen-powered AI app (user interface) to help you rapidly
 Code for AutoGen Studio is on GitHub at [microsoft/autogen](https://github.com/microsoft/autogen/tree/main/samples/apps/autogen-studio)
 
 > **Note**: AutoGen Studio is meant to help you rapidly prototype multi-agent workflows and demonstrate an example of end user interfaces built with AutoGen. It is not meant to be a production-ready app.
+
+> [!WARNING]
+> AutoGen Studio is currently under active development and we are iterating quickly. Kindly consider that we may introduce breaking changes in the releases during the upcoming weeks, and also the `README` might be outdated. We'll update the `README` as soon as we stabilize the API.
 
 ### Capabilities / Roadmap
 
@@ -27,6 +31,8 @@ Project Structure:
 - _frontend/_ code for the webui, built with Gatsby and TailwindCSS
 
 ### Installation
+
+There are two ways to install AutoGen Studio - from PyPi or from source. We **recommend installing from PyPi** unless you plan to modify the source code.
 
 There are two ways to install AutoGen Studio - from PyPi or from source. We **recommend installing from PyPi** unless you plan to modify the source code.
 
@@ -64,7 +70,7 @@ For Windows users, to build the frontend, you may need alternative commands to b
 
 ```bash
 
-  gatsby clean && rmdir /s /q ..\\autogenstudio\\web\\ui && (set \"PREFIX_PATH_VALUE=\" || ver>nul) && gatsby build --prefix-paths && xcopy /E /I /Y public ..\\autogenstudio\\web\\ui
+  gatsby clean && rmdir /s /q ..\\autogenstudio\\web\\ui 2>nul & (set \"PREFIX_PATH_VALUE=\" || ver>nul) && gatsby build --prefix-paths && xcopy /E /I /Y public ..\\autogenstudio\\web\\ui
 
 ```
 
@@ -93,6 +99,7 @@ autogenstudio ui --port 8081
 ```
 
 This will start the application on the specified port. Open your web browser and go to `http://localhost:8081/` to begin using AutoGen Studio.
+AutoGen Studio also takes a `--host <host>` argument to specify the host address. By default, it is set to `localhost`.
 
 Now that you have AutoGen Studio installed and running, you are ready to explore its capabilities, including defining and modifying agent workflows, interacting with agents and sessions, and expanding agent skills.
 
@@ -152,6 +159,13 @@ A: Yes, you can view the generated messages in the debug console of the web UI, 
 **Q: Can I use other models with AutoGen Studio?**
 Yes. AutoGen standardizes on the openai model api format, and you can use any api server that offers an openai compliant endpoint. In the AutoGen Studio UI, each agent has an `llm_config` field where you can input your model endpoint details including `model name`, `api key`, `base url`, `model type` and `api version`. For Azure OpenAI models, you can find these details in the Azure portal. Note that for Azure OpenAI, the `model name` is the deployment id or engine, and the `model type` is "azure".
 For other OSS models, we recommend using a server such as vllm to instantiate an openai compliant endpoint.
+
+**Q: The Server Starts But I Can't Access the UI**
+A: If you are running the server on a remote machine (or a local machine that fails to resolve localhost correstly), you may need to specify the host address. By default, the host address is set to `localhost`. You can specify the host address using the `--host <host>` argument. For example, to start the server on port 8081 and local address such that it is accessible from other machines on the network, you can run the following command:
+
+```bash
+autogenstudio ui --port 8081 --host 0.0.0.0
+```
 
 ## Acknowledgements
 

@@ -33,8 +33,8 @@ class Message(object):
 @dataclass
 class Skill(object):
     title: str
-    file_name: str
     content: str
+    file_name: Optional[str] = None
     id: Optional[str] = None
     description: Optional[str] = None
     timestamp: Optional[str] = None
@@ -172,6 +172,7 @@ class GroupChatFlowSpec:
     timestamp: Optional[str] = None
     user_id: Optional[str] = None
     description: Optional[str] = None
+    skills: Optional[Union[None, List[Skill]]] = None
 
     def __post_init__(self):
         if self.timestamp is None:
@@ -237,6 +238,8 @@ class Session(object):
     id: Optional[str] = None
     timestamp: Optional[str] = None
     flow_config: AgentWorkFlowConfig = None
+    name: Optional[str] = None
+    description: Optional[str] = None
 
     def __post_init__(self):
         if self.timestamp is None:

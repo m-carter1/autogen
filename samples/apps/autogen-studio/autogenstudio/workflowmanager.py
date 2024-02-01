@@ -1,8 +1,8 @@
+import os
 from typing import List, Optional
-from dataclasses import asdict
 import autogen
-from .datamodel import AgentConfig, AgentFlowSpec, AgentWorkFlowConfig, GroupChatConfig, Message
-from .utils import get_skills_from_prompt, clear_folder
+from .datamodel import AgentConfig, AgentFlowSpec, AgentWorkFlowConfig, Message
+from .utils import get_skills_from_prompt, clear_folder, sanitize_model
 from datetime import datetime
 
 
@@ -113,24 +113,42 @@ class AutoGenWorkFlowManager:
         agent_spec.config.is_termination_msg = agent_spec.config.is_termination_msg or (
             lambda x: "TERMINATE" in x.get("content", "").rstrip()[-20:]
         )
-        skills_prompt = ""
-        if agent_spec.skills:
-            # get skill prompt, also write skills to a file named skills.py
-            skills_prompt = get_skills_from_prompt(agent_spec.skills, self.work_dir)
 
-        if agent_spec.type == "userproxy":
+        def get_default_system_message(agent_type: str) -> str:
+            if agent_type == "assistant":
+                return autogen.AssistantAgent.DEFAULT_SYSTEM_MESSAGE
+            else:
+                return "You are a helpful AI Assistant."
+
+        # sanitize llm_config if present
+        if agent_spec.config.llm_config is not False:
+            config_list = []
+            for llm in agent_spec.config.llm_config.config_list:
+                # check if api_key is present either in llm or env variable
+                if "api_key" not in llm and "OPENAI_API_KEY" not in os.environ:
+                    error_message = f"api_key is not present in llm_config or OPENAI_API_KEY env variable for agent ** {agent_spec.config.name}**. Update your workflow to provide an api_key to use the LLM."
+                    raise ValueError(error_message)
+
+                # only add key if value is not None
+                sanitized_llm = sanitize_model(llm)
+                config_list.append(sanitized_llm)
+            agent_spec.config.llm_config.config_list = config_list
+        if agent_spec.config.code_execution_config is not False:
             code_execution_config = agent_spec.config.code_execution_config or {}
             code_execution_config["work_dir"] = self.work_dir
+            # tbd check if docker is installed
+            code_execution_config["use_docker"] = False
             agent_spec.config.code_execution_config = code_execution_config
 
-        if agent_spec.type == "assistant":
-            agent_spec.config.system_message = (
-                autogen.AssistantAgent.DEFAULT_SYSTEM_MESSAGE
-                + "\n\n"
-                + agent_spec.config.system_message
-                + "\n\n"
-                + skills_prompt
-            )
+        if agent_spec.skills:
+            # get skill prompt, also write skills to a file named skills.py
+            skills_prompt = ""
+            skills_prompt = get_skills_from_prompt(agent_spec.skills, self.work_dir)
+
+            if agent_spec.config.system_message:
+                agent_spec.config.system_message = agent_spec.config.system_message + "\n\n" + skills_prompt
+            else:
+                agent_spec.config.system_message = get_default_system_message(agent_spec.type) + "\n\n" + skills_prompt
 
         return agent_spec
 
@@ -144,7 +162,7 @@ class AutoGenWorkFlowManager:
         Returns:
             An instance of the loaded agent.
         """
-
+        agent_spec = self.sanitize_agent_spec(agent_spec)
         if agent_spec.type == "groupchat":
             agents = [
                 self.load(self.sanitize_agent_spec(agent_config)) for agent_config in agent_spec.groupchat_config.agents
@@ -156,7 +174,6 @@ class AutoGenWorkFlowManager:
             return manager
 
         else:
-            agent_spec = self.sanitize_agent_spec(agent_spec)
             agent = self.load_agent_config(agent_spec.config, agent_spec.type)
             return agent
 

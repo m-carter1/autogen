@@ -57,7 +57,7 @@ export interface IGroupChatConfig {
   admin_name: string;
   messages: Array<any>;
   max_round: number;
-  speaker_selection_method: string;
+  speaker_selection_method: "auto" | "round_robin" | "random";
   allow_repeat_speaker: boolean | Array<IAgentConfig>;
 }
 
@@ -119,7 +119,7 @@ export interface IGalleryItem {
 
 export interface ISkill {
   title: string;
-  file_name: string;
+  file_name?: string;
   content: string;
   id?: string;
   timestamp?: string;

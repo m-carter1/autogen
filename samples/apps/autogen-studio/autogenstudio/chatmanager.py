@@ -43,6 +43,7 @@ class AutoGenChatManager:
             output = ""
 
         metadata["code"] = ""
+        metadata["summary_method"] = flow_config.summary_method
         end_time = time.time()
         metadata["time"] = end_time - start_time
         modified_files = get_modified_files(start_time, end_time, scratch_dir, dest_dir=work_dir)

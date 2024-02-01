@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi import HTTPException
+from openai import OpenAIError
 from ..version import VERSION
 
 from ..datamodel import (
@@ -402,6 +403,32 @@ async def create_user_models(req: DBWebRequestModel):
         }
 
 
+@api.post("/models/test")
+async def test_user_models(req: DBWebRequestModel):
+    """Test a model to verify it works"""
+
+    try:
+        response = test_model(model=req.model)
+        return {
+            "status": True,
+            "message": "Model tested successfully",
+            "data": response,
+        }
+
+    except OpenAIError as oai_error:
+        print(traceback.format_exc())
+        return {
+            "status": False,
+            "message": "Error occurred while testing model: " + str(oai_error),
+        }
+    except Exception as ex_error:
+        print(traceback.format_exc())
+        return {
+            "status": False,
+            "message": "Error occurred while testing model: " + str(ex_error),
+        }
+
+
 @api.delete("/models/delete")
 async def delete_user_model(req: DBWebRequestModel):
     """Delete a model for a user"""
@@ -444,7 +471,6 @@ async def get_user_workflows(user_id: str):
 @api.post("/workflows")
 async def create_user_workflow(req: DBWebRequestModel):
     """Create a new workflow for a user"""
-
     try:
         workflow = dbmanager.upsert_workflow(workflow=req.workflow)
         return {
