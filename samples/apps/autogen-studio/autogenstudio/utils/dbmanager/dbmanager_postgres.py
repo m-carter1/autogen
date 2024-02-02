@@ -737,7 +737,7 @@ class PostgresDBManager (IDBManager):
         :return: A list of dictionaries, each representing a workflow after insertion or update
         """
         existing_workflow = self.get_item_by_field("workflows", "id", workflow.id)
-
+        print(existing_workflow)
         if existing_workflow:
             updated_data = {
                 "user_id": workflow.user_id,

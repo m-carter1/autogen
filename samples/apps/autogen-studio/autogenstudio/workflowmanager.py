@@ -1,10 +1,11 @@
 import os
 from typing import List, Optional
-import autogen
+import autogen as autogen
+from autogen.agentchat.contrib.azure_cognitive_search_agent import AzureCognitiveSearchAgent
 from .datamodel import AgentConfig, AgentFlowSpec, AgentWorkFlowConfig, Message
 from .utils import get_skills_from_prompt, clear_folder, sanitize_model
 from datetime import datetime
-
+import json
 
 class AutoGenWorkFlowManager:
     """
@@ -192,7 +193,22 @@ class AutoGenWorkFlowManager:
             agent = autogen.AssistantAgent(**agent_config.dict())
             agent.register_reply([autogen.Agent, None], reply_func=self.process_reply, config={"callback": None})
         elif agent_type == "userproxy":
+            agent_config.is_termination_msg = lambda msg: "" in msg["content"] or "TERMINATE" in msg.get("content", "").rstrip()[-20:]
             agent = autogen.UserProxyAgent(**agent_config.dict())
+            agent.register_reply([autogen.Agent, None], reply_func=self.process_reply, config={"callback": None})
+        elif agent_type == "azurecognitivesearchagent":
+            try:
+                # Check if extra_body exists and is not None or empty
+                if agent_config.llm_config.extra_body:
+                    # Parse the JSON string into a Python dictionary
+                    jsonObject = json.loads(agent_config.llm_config.extra_body)
+                    # Assuming you want to update the agent_config.llm_config.extra_body with the parsed object
+                    agent_config.llm_config.extra_body = jsonObject
+            except json.JSONDecodeError as error:
+                print("Error parsing JSON from extra_body:", error)
+            print(agent_config.dict())
+            agent_config.is_termination_msg = lambda msg: "" in msg["content"] or "TERMINATE" in msg.get("content", "").rstrip()[-20:]
+            agent = AzureCognitiveSearchAgent(**agent_config.dict())
             agent.register_reply([autogen.Agent, None], reply_func=self.process_reply, config={"callback": None})
         else:
             raise ValueError(f"Unknown agent type: {agent_type}")

@@ -53,6 +53,7 @@ const AgentsView = ({}: any) => {
         temperature: 0.1,
         timeout: 600,
         cache_seed: null,
+        extra_body: ""
       },
       human_input_mode: "NEVER",
       max_consecutive_auto_reply: 8,
@@ -128,7 +129,7 @@ const AgentsView = ({}: any) => {
     setError(null);
     setLoading(true);
     // const fetch;
-
+    console.log("agent", agent);
     const payLoad = {
       method: "POST",
       headers: {
@@ -144,7 +145,7 @@ const AgentsView = ({}: any) => {
     const onSuccess = (data: any) => {
       if (data && data.status) {
         message.success(data.message);
-        // console.log("agents", data.data);
+        console.log("agents", data.data);
         setAgents(data.data);
       } else {
         message.error(data.message);

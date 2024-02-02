@@ -1090,21 +1090,47 @@ export const AgentFlowSpecView = ({
   // Event handlers for updating local state and propagating changes
 
   const onControlChange = (value: any, key: string) => {
-    if (key === "llm_config") {
-      if (value.config_list.length === 0) {
-        value = false;
-      }
+    // Special handling for llm_config key to potentially set it to false
+    if (key === "llm_config" && value.config_list && value.config_list.length === 0) {
+      value = false;
     }
-    const updatedFlowSpec = {
-      ...localFlowSpec,
-      config: { ...localFlowSpec.config, [key]: value },
-    };
-    console.log(updatedFlowSpec.config.llm_config);
+  
+    console.log("key: ", key, "value: ", value);
+  
+    // Check if the key is 'type', which is a top-level property, otherwise assume it's part of 'config'
+    const updatedFlowSpec = key === "type" 
+      ? { ...localFlowSpec, [key]: value } // Update top-level 'type'
+      : { // Update inside 'config'
+          ...localFlowSpec,
+          config: { ...localFlowSpec.config, [key]: value },
+        };
+  
+    console.log(updatedFlowSpec);
     setLocalFlowSpec(updatedFlowSpec);
     setFlowSpec(updatedFlowSpec);
+  }; 
+  
+  const onLLMConfigControlChange = (value: any, key: string) => {
+    // Only proceed if llm_config exists and is not false
+    if (localFlowSpec.config.llm_config) {
+      const updatedFlowSpec: IAgentFlowSpec = {
+        ...localFlowSpec,
+        config: {
+          ...localFlowSpec.config,
+          llm_config: {
+            ...localFlowSpec.config.llm_config,
+            [key]: value,
+          },
+        },
+      };
+  
+      console.log(updatedFlowSpec.config.llm_config);  
+      setLocalFlowSpec(updatedFlowSpec);
+      setFlowSpec(updatedFlowSpec);
+    }
   };
 
-  const llm_config = localFlowSpec.config.llm_config || { config_list: [] };
+  const llm_config = localFlowSpec.config.llm_config; //|| { config_list: [] };
 
   return (
     <>
@@ -1151,6 +1177,28 @@ export const AgentFlowSpecView = ({
             />
           }
         />
+
+        <ControlRowView
+          title="Agent Type"
+          description="Defines the type of agent"
+          value={flowSpec.type}
+          control={
+            <Select
+              className="mt-2 w-full"
+              defaultValue={flowSpec.type}
+              onChange={(value: any) => {
+                onControlChange(value, "type");
+              }}
+              options={
+                [
+                  { label: "Assistant", value: "assistant" },
+                  { label: "Azure Cognitive Search Agent", value: "azurecognitivesearchagent" }, 
+                ] as any
+              }
+            />
+          }
+        />
+
 
         <ControlRowView
           title="Max Consecutive Auto Reply"
@@ -1233,6 +1281,26 @@ export const AgentFlowSpecView = ({
             }
           />
         )}
+
+      {llm_config && (
+          <ControlRowView
+            title="Extra Body"
+            className="mt-4"
+            description="LLM Config Extra body"
+            value={llm_config?.extra_body || ""}
+            control={
+              <TextArea
+                className="mt-2 w-full"
+                value={llm_config?.extra_body || ""}
+                rows={8}
+                onChange={(e) => {
+                  onLLMConfigControlChange(e.target.value, "extra_body");
+                }}
+              />
+            }
+          />
+        )}
+
 
         {
           <ControlRowView
@@ -1878,6 +1946,7 @@ export const FlowConfigViewer = ({
   const updateReceiverFlowSpec = (newFlowSpec: IAgentFlowSpec | null) => {
     setReceiverFlowSpec(newFlowSpec);
     if (newFlowSpec) {
+      console.log("newFlowSpec: ", newFlowSpec);
       setFlowConfig({ ...flowConfig, receiver: newFlowSpec });
     }
   };

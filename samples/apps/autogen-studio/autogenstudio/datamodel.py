@@ -92,6 +92,7 @@ class LLMConfig:
     temperature: float = 0
     cache_seed: Optional[Union[int, None]] = None
     timeout: Optional[int] = None
+    extra_body: Optional[Any] = None
 
     def dict(self):
         result = asdict(self)
@@ -122,7 +123,7 @@ class AgentConfig:
 class AgentFlowSpec:
     """Data model to help flow load agents from config"""
 
-    type: Literal["assistant", "userproxy"]
+    type: Literal["assistant", "userproxy", "azurecognitivesearchagent"]
     config: AgentConfig
     id: Optional[str] = None
     timestamp: Optional[str] = None

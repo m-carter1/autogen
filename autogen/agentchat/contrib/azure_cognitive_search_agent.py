@@ -27,6 +27,8 @@ class AzureCognitiveSearchAgent(ConversableAgent):
         if messages is None:
             messages = self._oai_messages[sender]
    
+        print(config)
+
         # unroll tool_responses
         all_messages = []
         for message in messages:

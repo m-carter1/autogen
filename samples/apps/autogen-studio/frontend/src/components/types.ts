@@ -30,6 +30,7 @@ export interface ILLMConfig {
   timeout?: number;
   cache_seed?: number | null;
   temperature: number;
+  extra_body: any;
 }
 
 export interface IAgentConfig {
@@ -43,7 +44,7 @@ export interface IAgentConfig {
 }
 
 export interface IAgentFlowSpec {
-  type: "assistant" | "userproxy" | "groupchat";
+  type: "assistant" | "userproxy" | "groupchat" | "azurecognitivesearchagent";
   config: IAgentConfig;
   timestamp?: string;
   id?: string;

@@ -255,6 +255,7 @@ export const sampleWorkflowConfig = (type = "twoagents") => {
     temperature: 0.1,
     timeout: 600,
     cache_seed: null,
+    extra_body: null,
   };
 
   const userProxyConfig: IAgentConfig = {
